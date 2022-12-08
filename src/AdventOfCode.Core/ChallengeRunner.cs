@@ -1,6 +1,7 @@
-﻿using Spectre.Console;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Reflection;
+using Scientist.Publishers.Console;
+using Spectre.Console;
 
 namespace AdventOfCode.Core
 {
@@ -13,6 +14,8 @@ namespace AdventOfCode.Core
     {
         public void Run(int challengeId, string input, Assembly assembly)
         {
+            GitHub.Scientist.ResultPublisher = new ConsoleResultPublisher();
+
             var challenges = assembly
                 .GetTypes()
                 .Where(x => x.IsAssignableTo(typeof(IChallenge)) && !x.IsAbstract)
