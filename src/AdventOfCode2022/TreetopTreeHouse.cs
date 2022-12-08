@@ -9,28 +9,26 @@ namespace AdventOfCode2022
 
         public object SolvePart1(string input)
         {
-            var (grid, rows, columns) = ParseTreeMap(input);
+            var map = TreeMap.Parse(input);
 
-            var visibility = new bool[rows, columns];
-            CheckVisibilityFromLeft(grid, rows, columns, visibility);
-            CheckVisibilityFromRight(grid, rows, columns, visibility);
-            CheckVisibilityFromTop(grid, rows, columns, visibility);
-            CheckVisibilityFromBottom(grid, rows, columns, visibility);
-
-            return CountVisibleTrees(rows, columns, visibility);
+            return GitHub.Scientist.Science<int>("Check Visibility", experiment =>
+            {
+                experiment.Use(() => CheckVisibilityVersion1(map));
+                experiment.Try(() => CheckVisibilityVersion2(map));
+            });
         }
 
         public object SolvePart2(string input)
         {
-            var (grid, rows, columns) = ParseTreeMap(input);
+            var map = TreeMap.Parse(input);
 
             var highestScore = 0;
-            for (int row = 0; row < rows; row++)
+            for (int row = 0; row < map.Rows; row++)
             {
-                for (int column = 0; column < columns; column++)
+                for (int column = 0; column < map.Columns; column++)
                 {
                     var startingPoint = new Point(row, column);
-                    var scenicScore = CalculateScenicScore(grid, rows, columns, startingPoint);
+                    var scenicScore = CalculateScenicScore(map.TreeHeight, map.Rows, map.Columns, startingPoint);
                     if (scenicScore > highestScore)
                     {
                         highestScore = scenicScore;
@@ -41,23 +39,32 @@ namespace AdventOfCode2022
             return highestScore;
         }
 
-        private static (int[,] grid, int rows, int columns) ParseTreeMap(string input)
+        private static int CheckVisibilityVersion1(TreeMap map)
         {
-            var lines = input.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            var visibility = new bool[map.Rows, map.Columns];
+            CheckVisibilityFromLeft(map.TreeHeight, map.Rows, map.Columns, visibility);
+            CheckVisibilityFromRight(map.TreeHeight, map.Rows, map.Columns, visibility);
+            CheckVisibilityFromTop(map.TreeHeight, map.Rows, map.Columns, visibility);
+            CheckVisibilityFromBottom(map.TreeHeight, map.Rows, map.Columns, visibility);
 
-            var rows = lines.Length;
-            var columns = lines[0].Length;
-            var grid = new int[rows, columns];
-            for (int row = 0; row < lines.Length; row++)
+            return CountVisibleTrees(map.Rows, map.Columns, visibility);
+        }
+
+        private static int CheckVisibilityVersion2(TreeMap map)
+        {
+            var count = 0;
+            for (var row = 0; row < map.Rows; row++)
             {
-                var line = lines[row];
-                for (int column = 0; column < line.Length; column++)
+                for (var column = 0; column < map.Columns; column++)
                 {
-                    grid[row, column] = int.Parse(line[column].ToString());
+                    if (map.IsVisible(row, column))
+                    {
+                        count++;
+                    }
                 }
             }
 
-            return (grid, rows, columns);
+            return count;
         }
 
         private static void CheckVisibilityFromLeft(int[,] grid, int rows, int columns, bool[,] visibility)
@@ -198,6 +205,100 @@ namespace AdventOfCode2022
             var visibilityBelow = temp;
 
             return visibilityToLeft * visibilityToRight * visibilityAbove * visibilityBelow;
+        }
+
+        public class TreeMap
+        {
+            public TreeMap(int[,] trees)
+            {
+                Rows = trees.GetLength(0);
+                Columns = trees.GetLength(1);
+                TreeHeight = trees;
+            }
+
+            public int Rows { get; }
+            public int Columns { get; }
+            public int[,] TreeHeight { get; }
+
+            public static TreeMap Parse(string input)
+            {
+                var lines = input.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+                var rows = lines.Length;
+                var columns = lines[0].Length;
+                var trees = new int[rows, columns];
+                for (int row = 0; row < lines.Length; row++)
+                {
+                    var line = lines[row];
+                    for (int column = 0; column < line.Length; column++)
+                    {
+                        trees[row, column] = int.Parse(line[column].ToString());
+                    }
+                }
+
+                return new TreeMap(trees);
+            }
+
+            public bool IsVisible(int row, int column)
+            {
+                return IsVisibleNorth(row, column) || IsVisibleSouth(row, column) || IsVisibleWest(row, column) || IsVisibleEast(row, column);
+            }
+
+            private bool IsVisibleNorth(int row, int column)
+            {
+                var height = TreeHeight[row, column];
+                for (var x = row - 1; x >= 0; x--)
+                {
+                    if (TreeHeight[x, column] >= height)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            private bool IsVisibleSouth(int row, int column)
+            {
+                var height = TreeHeight[row, column];
+                for (var x = row + 1; x < Rows; x++)
+                {
+                    if (TreeHeight[x, column] >= height)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            private bool IsVisibleWest(int row, int column)
+            {
+                var height = TreeHeight[row, column];
+                for (var y = column - 1; y >= 0; y--)
+                {
+                    if (TreeHeight[row, y] >= height)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            private bool IsVisibleEast(int row, int column)
+            {
+                var height = TreeHeight[row, column];
+                for (var y = column + 1; y < Columns; y++)
+                {
+                    if (TreeHeight[row, y] >= height)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         }
     }
 }
