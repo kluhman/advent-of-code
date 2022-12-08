@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AdventOfCode.Console": {
+      "commandName": "Project",
+      "commandLineArgs": "--auto"
+    }
+  }
+}
