@@ -53,10 +53,7 @@ namespace AdventOfCode2022
                 var line = lines[row];
                 for (int column = 0; column < line.Length; column++)
                 {
-                    var character = line[column];
-                    var asString = character.ToString();
-                    var asInteger = int.Parse(asString);
-                    grid[row, column] = asInteger;
+                    grid[row, column] = int.Parse(line[column].ToString());
                 }
             }
 
