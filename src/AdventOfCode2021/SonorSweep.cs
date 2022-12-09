@@ -1,63 +1,62 @@
 ﻿using AdventOfCode.Core;
 
-namespace AdventOfCode2021
+namespace AdventOfCode2021;
+
+internal class SonorSweep : IChallenge
 {
-    internal class SonorSweep : IChallenge
+    public int ChallengeId => 1;
+
+    public object SolvePart1(string input)
     {
-        public int ChallengeId => 1;
+        var distances = input
+            .Split("\n", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Select(int.Parse)
+            .ToArray();
 
-        public object SolvePart1(string input)
+        var increases = 0;
+        for (var index = 1; index < distances.Length; index++)
         {
-            var distances = input
-                .Split("\n", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                .Select(int.Parse)
-                .ToArray();
-
-            var increases = 0;
-            for (int index = 1; index < distances.Length; index++)
+            if (distances[index] > distances[index - 1])
             {
-                if (distances[index] > distances[index - 1])
-                {
-                    increases++;
-                }
+                increases++;
             }
-
-            return increases;
         }
 
-        public object SolvePart2(string input)
+        return increases;
+    }
+
+    public object SolvePart2(string input)
+    {
+        const int windowSize = 3;
+        var distances = input
+            .Split("\n", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Select(int.Parse)
+            .ToArray();
+
+        var increases = 0;
+        var previousWindow = 0;
+        for (var index = 0; index <= distances.Length - windowSize; index++)
         {
-            const int windowSize = 3;
-            var distances = input
-                .Split("\n", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                .Select(int.Parse)
-                .ToArray();
-
-            var increases = 0;
-            var previousWindow = 0;
-            for (int index = 0; index <= distances.Length - windowSize; index++)
+            var window = GetCurrentWindow(distances, index, windowSize);
+            if (index > 0 && window > previousWindow)
             {
-                int window = GetCurrentWindow(distances, index, windowSize);
-                if(index > 0 && window > previousWindow)
-                {
-                    increases++;
-                }
-
-                previousWindow = window;
+                increases++;
             }
 
-            return increases;
+            previousWindow = window;
         }
 
-        private static int GetCurrentWindow(int[] distances, int startIndex, int windowSize)
+        return increases;
+    }
+
+    private static int GetCurrentWindow(int[] distances, int startIndex, int windowSize)
+    {
+        var sum = 0;
+        for (var i = 0; i < windowSize; i++)
         {
-            var sum = 0;
-            for (int i = 0; i < windowSize; i++)
-            {
-                sum += distances[startIndex + i];
-            }
-
-            return sum;
+            sum += distances[startIndex + i];
         }
+
+        return sum;
     }
 }

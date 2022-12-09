@@ -5,10 +5,10 @@ using Spectre.Console;
 var autoRun = args.Contains("--auto");
 var (year, day) = autoRun ? GetCurrentChallenge() : GetChallenge();
 
-
 if (!File.Exists("input.txt"))
 {
-    AnsiConsole.MarkupLine(@"[red]No input file could be found. Please add challenge input in a file called ""input.txt"" in the executing directory.[/]");
+    AnsiConsole.MarkupLine(
+        @"[red]No input file could be found. Please add challenge input in a file called ""input.txt"" in the executing directory.[/]");
     return;
 }
 
@@ -22,7 +22,6 @@ try
 catch (Exception ex) when (ex is FileLoadException or FileNotFoundException)
 {
     AnsiConsole.MarkupLine($@"[red]Challenge assembly for year '{year}' could not be found[/]");
-    return;
 }
 
 static (int year, int day) GetCurrentChallenge() => (DateTime.Now.Year, DateTime.Now.Day);
