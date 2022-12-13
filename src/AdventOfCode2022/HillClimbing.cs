@@ -11,30 +11,26 @@ public class HillClimbing : IChallenge
     public object SolvePart1(string input)
     {
         var heightMap = HeightMap.Parse(input);
-        return CalculateMinimumDistance(heightMap, heightMap.StartingPosition);
+        return GitHub.Scientist.Science<int>("Find Shortest Distance from Start", experiment =>
+        {
+            experiment.Use(() => CalculateMinimumDistanceDjikstra(heightMap, heightMap.StartingPosition));
+            experiment.Try(() => CalculateMinimumDistanceBreadthFirstSearch(heightMap, heightMap.StartingPosition));
+        });
     }
 
     public object SolvePart2(string input)
     {
         var heightMap = HeightMap.Parse(input);
-        var potentialStartingPoints = heightMap.Where(coordinates => heightMap[coordinates] == 0).ToList();
-
-        var minDistance = int.MaxValue;
-        var options = new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = DataflowBlockOptions.Unbounded };
-        var calculator = new TransformBlock<Coordinates, int>(coordinates => CalculateMinimumDistance(heightMap, coordinates), options);
-        var reducer = new ActionBlock<int>(distance => minDistance = int.Min(minDistance, distance));
-        calculator.LinkTo(reducer);
-
-        potentialStartingPoints.ForEach(coordinates => calculator.Post(coordinates));
-        calculator.Complete();
-        calculator.Completion.Wait();
-
-        return minDistance;
+        return GitHub.Scientist.Science<int>("Find Shortest Hiking Trail", experiment =>
+        {
+            experiment.Use(() => FindShortestTrail(heightMap, CalculateMinimumDistanceDjikstra));
+            experiment.Try(() => FindShortestTrail(heightMap, CalculateMinimumDistanceBreadthFirstSearch));
+        });
     }
 
     // calculate shortest path using Djiksta's algorithm
     // https://www.freecodecamp.org/news/dijkstras-shortest-path-algorithm-visual-introduction/
-    private static int CalculateMinimumDistance(HeightMap heightMap, Coordinates startPosition)
+    private static int CalculateMinimumDistanceDjikstra(HeightMap heightMap, Coordinates startPosition)
     {
         var position = startPosition;
         var unvisitedNodes = new HashSet<Coordinates>(heightMap);
@@ -44,8 +40,7 @@ public class HillClimbing : IChallenge
         {
             unvisitedNodes.Remove(position);
 
-            var adjacentNodes = heightMap.GetPotentialMoves(position);
-            foreach (var adjacentNode in adjacentNodes)
+            foreach (var adjacentNode in heightMap.GetPotentialMoves(position))
             {
                 var newDistance = distance[position] + 1;
                 if (!distance.TryGetValue(adjacentNode, out var oldDistance) || newDistance < oldDistance)
@@ -64,6 +59,55 @@ public class HillClimbing : IChallenge
         }
 
         return distance.TryGetValue(heightMap.Destination, out var minDistance) ? minDistance : int.MaxValue;
+    }
+
+    // calculate shortest path using Breadth First Search, since this graph is unweighted
+    // https://en.wikipedia.org/wiki/Breadth-first_search
+    private static int CalculateMinimumDistanceBreadthFirstSearch(HeightMap heightMap, Coordinates startPosition)
+    {
+        var visited = new HashSet<Coordinates> { startPosition };
+        var toVisit = new Queue<(Coordinates coordinates, int distance)>(new[] { (startPosition, 0) });
+        var distance = new Dictionary<Coordinates, int> { { startPosition, 0 } };
+
+        while (toVisit.TryDequeue(out var position))
+        {
+            if (position.coordinates == heightMap.Destination)
+            {
+                return position.distance;
+            }
+
+            foreach (var adjacentNode in heightMap.GetPotentialMoves(position.coordinates))
+            {
+                if (visited.Contains(adjacentNode))
+                {
+                    continue;
+                }
+
+                visited.Add(adjacentNode);
+                toVisit.Enqueue((adjacentNode, position.distance + 1));
+            }
+        }
+
+        return distance.TryGetValue(heightMap.Destination, out var minDistance) ? minDistance : int.MaxValue;
+    }
+
+    private static int FindShortestTrail(HeightMap heightMap, Func<HeightMap, Coordinates, int> findShortestDistance)
+    {
+        var minDistance = int.MaxValue;
+        var options = new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = DataflowBlockOptions.Unbounded };
+        var calculator = new TransformBlock<Coordinates, int>(coordinates => findShortestDistance(heightMap, coordinates), options);
+        var reducer = new ActionBlock<int>(distance => minDistance = int.Min(minDistance, distance));
+        calculator.LinkTo(reducer);
+
+        foreach (var potentialStartingPoint in heightMap.Where(coordinates => heightMap[coordinates] == 0))
+        {
+            calculator.Post(potentialStartingPoint);
+        }
+
+        calculator.Complete();
+        calculator.Completion.Wait();
+
+        return minDistance;
     }
 
     private record Coordinates(int Row, int Column);
