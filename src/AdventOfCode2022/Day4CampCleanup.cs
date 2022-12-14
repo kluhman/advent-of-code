@@ -3,7 +3,7 @@ using AdventOfCode.Core.Models;
 
 namespace AdventOfCode2022;
 
-internal class CampCleanup : IChallenge
+internal class Day4CampCleanup : IChallenge
 {
     public int ChallengeId => 4;
 

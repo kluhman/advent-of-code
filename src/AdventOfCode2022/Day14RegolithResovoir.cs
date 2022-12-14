@@ -7,7 +7,7 @@ using AdventOfCode.Core.Models;
 
 namespace AdventOfCode2022;
 
-public class RegolithResovoir : IChallenge
+public class Day14RegolithResovoir : IChallenge
 {
     public int ChallengeId => 14;
 

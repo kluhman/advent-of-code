@@ -2,7 +2,7 @@
 
 namespace AdventOfCode2021;
 
-internal class BinaryDiagnostic : IChallenge
+internal class Day3BinaryDiagnostic : IChallenge
 {
     public int ChallengeId => 3;
 

@@ -3,7 +3,7 @@ using AdventOfCode.Core;
 
 namespace AdventOfCode2022;
 
-internal class RockPaperScissors : IChallenge
+internal class Day2RockPaperScissors : IChallenge
 {
     private static readonly Option Rock = new(nameof(Rock), 1, nameof(Scissors));
     private static readonly Option Paper = new(nameof(Paper), 2, nameof(Rock));
@@ -126,7 +126,7 @@ internal class RockPaperScissors : IChallenge
             return result;
         }
 
-        var otherOptions = typeof(RockPaperScissors)
+        var otherOptions = typeof(Day2RockPaperScissors)
             .GetFields(BindingFlags.NonPublic | BindingFlags.Static)
             .Where(x => x.FieldType == typeof(Option))
             .Select(x => (Option)x.GetValue(null)!)

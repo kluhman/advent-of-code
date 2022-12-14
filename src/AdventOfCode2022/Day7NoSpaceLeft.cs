@@ -3,7 +3,7 @@ using AdventOfCode.Core;
 
 namespace AdventOfCode2022;
 
-internal class NoSpaceLeft : IChallenge
+internal class Day7NoSpaceLeft : IChallenge
 {
     public int ChallengeId => 7;
 

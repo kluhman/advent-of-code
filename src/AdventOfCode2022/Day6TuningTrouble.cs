@@ -2,7 +2,7 @@
 
 namespace AdventOfCode2022;
 
-internal class TuningTrouble : IChallenge
+internal class Day6TuningTrouble : IChallenge
 {
     public int ChallengeId => 6;
 

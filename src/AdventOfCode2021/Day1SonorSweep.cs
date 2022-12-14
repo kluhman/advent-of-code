@@ -2,7 +2,7 @@
 
 namespace AdventOfCode2021;
 
-internal class SonorSweep : IChallenge
+internal class Day1SonorSweep : IChallenge
 {
     public int ChallengeId => 1;
 

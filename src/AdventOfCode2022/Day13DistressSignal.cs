@@ -3,7 +3,7 @@ using AdventOfCode.Core;
 
 namespace AdventOfCode2022;
 
-public class DistressSignal : IChallenge
+public class Day13DistressSignal : IChallenge
 {
     public int ChallengeId => 13;
 

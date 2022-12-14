@@ -2,7 +2,7 @@
 
 namespace AdventOfCode2022;
 
-internal class RucksackOrganization : IChallenge
+internal class Day3RucksackOrganization : IChallenge
 {
     public int ChallengeId => 3;
 

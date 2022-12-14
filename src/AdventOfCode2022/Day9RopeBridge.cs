@@ -2,7 +2,7 @@
 
 namespace AdventOfCode2022;
 
-internal class RopeBridge : IChallenge
+internal class Day9RopeBridge : IChallenge
 {
     public int ChallengeId => 9;
 

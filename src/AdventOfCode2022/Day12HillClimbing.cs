@@ -6,7 +6,7 @@ using AdventOfCode.Core.PathFinding.Exceptions;
 
 namespace AdventOfCode2022;
 
-public class HillClimbing : IChallenge
+public class Day12HillClimbing : IChallenge
 {
     public int ChallengeId => 12;
 

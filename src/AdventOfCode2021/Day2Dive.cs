@@ -2,7 +2,7 @@
 
 namespace AdventOfCode2021;
 
-internal class Dive : IChallenge
+internal class Day2Dive : IChallenge
 {
     public int ChallengeId => 2;
 

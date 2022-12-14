@@ -3,7 +3,7 @@ using AdventOfCode.Core;
 
 namespace AdventOfCode2022;
 
-internal class CalorieCounter : IChallenge
+internal class Day1CalorieCounter : IChallenge
 {
     public int ChallengeId => 1;
 

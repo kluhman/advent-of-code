@@ -2,7 +2,7 @@
 
 namespace AdventOfCode2022;
 
-public class CathodeRayTube : IChallenge
+public class Day10CathodeRayTube : IChallenge
 {
     public int ChallengeId => 10;
 

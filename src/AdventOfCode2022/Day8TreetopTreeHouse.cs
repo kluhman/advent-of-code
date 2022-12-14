@@ -3,7 +3,7 @@ using AdventOfCode.Core;
 
 namespace AdventOfCode2022;
 
-internal class TreetopTreeHouse : IChallenge
+internal class Day8TreetopTreeHouse : IChallenge
 {
     public int ChallengeId => 8;
 
