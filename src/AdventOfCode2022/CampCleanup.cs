@@ -1,4 +1,5 @@
 ﻿using AdventOfCode.Core;
+using AdventOfCode.Core.Models;
 
 namespace AdventOfCode2022;
 
@@ -16,8 +17,8 @@ internal class CampCleanup : IChallenge
             var assignment1 = assignments[0].Split('-', 2);
             var assignment2 = assignments[1].Split('-', 2);
 
-            var firstRange = new Range(int.Parse(assignment1[0]), int.Parse(assignment1[1]));
-            var secondRange = new Range(int.Parse(assignment2[0]), int.Parse(assignment2[1]));
+            var firstRange = new Range<int>(int.Parse(assignment1[0]), int.Parse(assignment1[1]));
+            var secondRange = new Range<int>(int.Parse(assignment2[0]), int.Parse(assignment2[1]));
 
             if (firstRange.Contains(secondRange) || secondRange.Contains(firstRange))
             {
@@ -38,46 +39,15 @@ internal class CampCleanup : IChallenge
             var assignment1 = assignments[0].Split('-', 2);
             var assignment2 = assignments[1].Split('-', 2);
 
-            var firstRange = new Range(int.Parse(assignment1[0]), int.Parse(assignment1[1]));
-            var secondRange = new Range(int.Parse(assignment2[0]), int.Parse(assignment2[1]));
+            var firstRange = new Range<int>(int.Parse(assignment1[0]), int.Parse(assignment1[1]));
+            var secondRange = new Range<int>(int.Parse(assignment2[0]), int.Parse(assignment2[1]));
 
-            if (firstRange.Overlaps(secondRange))
+            if (firstRange.Intersects(secondRange))
             {
                 overlappingAssignments++;
             }
         }
 
         return overlappingAssignments;
-    }
-}
-
-internal static class RangeExtensions
-{
-    public static bool Contains(this Range range, Range other) =>
-        other.Start.Value >= range.Start.Value && other.End.Value <= range.End.Value;
-
-    public static bool Overlaps(this Range range, Range other)
-    {
-        if (other.Start.Value >= range.Start.Value && other.Start.Value <= range.End.Value)
-        {
-            return true;
-        }
-
-        if (other.End.Value >= range.Start.Value && other.End.Value <= range.End.Value)
-        {
-            return true;
-        }
-
-        if (range.Start.Value >= other.Start.Value && range.Start.Value <= other.End.Value)
-        {
-            return true;
-        }
-
-        if (range.End.Value >= other.Start.Value && range.End.Value <= other.End.Value)
-        {
-            return true;
-        }
-
-        return false;
     }
 }
