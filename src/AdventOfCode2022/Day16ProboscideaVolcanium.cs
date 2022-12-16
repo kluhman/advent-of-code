@@ -6,63 +6,28 @@ namespace AdventOfCode2022;
 
 public class Day16ProboscideaVolcanium : IChallenge
 {
+    private const int TimeToOpen = 1;
+
     public int ChallengeId => 16;
 
     public object SolvePart1(string input)
     {
         var graph = ParseValveGraph(input);
         var weightedGraph = ConvertToWeightedGraph(graph);
-        return GitHub.Scientist.Science<int>("Calculate Max Pressure Release Solo", experiment =>
-        {
-            experiment.Use(() =>
-            {
-                var start = weightedGraph.Nodes.Single(x => x.Id == "AA");
-                return VisitValve(weightedGraph, start, new[] { start }, 30);
-            });
-        });
+        var start = FindStartingValve(weightedGraph);
+
+        var actors = new[] { new Actor(start, 30) };
+        return CalculateMaxPressureRelease(weightedGraph, actors, weightedGraph.Nodes.Where(x => x.FlowRate > 0).ToArray());
     }
 
     public object SolvePart2(string input)
     {
         var graph = ParseValveGraph(input);
         var weightedGraph = ConvertToWeightedGraph(graph);
-        return GitHub.Scientist.Science<int>("Calculate Max Pressure Release Solo", experiment =>
-        {
-            experiment.Use(() =>
-            {
-                var start = weightedGraph.Nodes.Single(x => x.Id == "AA");
-                return VisitValve(weightedGraph, start, new[] { start }, 26);
-            });
-        });
-    }
+        var start = weightedGraph.Nodes.Single(x => x.Id == "AA");
 
-    private static int VisitValve(WeightedGraph<Valve> graph, Valve valve, IEnumerable<Valve> visited, int minutesRemaining)
-    {
-        if (minutesRemaining <= 0)
-        {
-            return 0;
-        }
-
-        var pressureReleased = 0;
-        if (valve.FlowRate > 0)
-        {
-            minutesRemaining--;
-            pressureReleased = minutesRemaining * valve.FlowRate;
-        }
-
-        var newVisits = visited.Concat(new[] { valve }).ToHashSet();
-        var nextValves = graph
-            .Edges[valve]
-            .Where(edge => edge.To.FlowRate > 0)
-            .Where(edge => !newVisits.Contains(edge.To));
-
-        var temp = 0;
-        foreach (var (_, nextValve, travelTime) in nextValves)
-        {
-            temp = int.Max(temp, VisitValve(graph, nextValve, newVisits, minutesRemaining - travelTime));
-        }
-
-        return pressureReleased + temp;
+        var actors = new[] { new Actor(start, 26), new Actor(start, 26) };
+        return CalculateMaxPressureRelease(weightedGraph, actors, weightedGraph.Nodes.Where(x => x.FlowRate > 0).ToArray());
     }
 
     private static Graph<Valve> ParseValveGraph(string input)
@@ -100,5 +65,51 @@ public class Day16ProboscideaVolcanium : IChallenge
         return new WeightedGraph<Valve>(graph.Nodes, edges);
     }
 
+    private static Valve FindStartingValve(WeightedGraph<Valve> weightedGraph)
+    {
+        return weightedGraph.Nodes.Single(x => x.Id == "AA");
+    }
+
+    private static int CalculateMaxPressureRelease(WeightedGraph<Valve> graph, IReadOnlyCollection<Actor> actors, IReadOnlyCollection<Valve> usefulValves)
+    {
+        // find the actor with the most available time
+        var actor = actors.OrderByDescending(x => x.MinutesRemaining).First();
+
+        var max = 0;
+        var valvesGroupedByDistance = usefulValves.GroupBy(valve => graph.Edges[actor.CurrentValve].Single(x => x.To == valve).Weight);
+
+        foreach (var group in valvesGroupedByDistance)
+        {
+            var travelTime = group.Key;
+            var timeRequired = travelTime + TimeToOpen;
+            var valve = group.OrderByDescending(x => x.FlowRate).First();
+
+            if (actor.MinutesRemaining < timeRequired)
+            {
+                continue;
+            }
+
+            var minutesRemaining = actor.MinutesRemaining - timeRequired;
+            var pressureReleased = minutesRemaining * valve.FlowRate;
+
+            var newActors = actors.Select(x => actor == x ? new Actor(valve, minutesRemaining) : x).ToArray();
+            max = int.Max(max, pressureReleased + CalculateMaxPressureRelease(graph, newActors, usefulValves.Where(x => x != valve).ToArray()));
+        }
+
+        return max;
+    }
+
     private record Valve(string Id, int FlowRate);
+
+    private class Actor
+    {
+        public Actor(Valve currentValve, int minutesRemaining)
+        {
+            CurrentValve = currentValve;
+            MinutesRemaining = minutesRemaining;
+        }
+
+        public Valve CurrentValve { get; }
+        public int MinutesRemaining { get; }
+    }
 }
