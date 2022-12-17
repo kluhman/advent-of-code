@@ -1,10 +1,16 @@
 ﻿using System.Collections;
 using AdventOfCode.Core;
+using AdventOfCode.Core.Extensions;
 
 namespace AdventOfCode2022;
 
 public class Day17PyroclasticFlow : IChallenge
 {
+    private readonly RockFormation[] _rockFormations =
+    {
+        RockFormation.Type1, RockFormation.Type2, RockFormation.Type3, RockFormation.Type4, RockFormation.Type5
+    };
+
     public int ChallengeId => 17;
 
     public object SolvePart1(string input)
@@ -19,20 +25,18 @@ public class Day17PyroclasticFlow : IChallenge
         return RunRockFallingSimulation(input, numberOfRocks);
     }
 
-    private static object RunRockFallingSimulation(string input, long numberOfRocks)
+    private long RunRockFallingSimulation(string input, long numberOfRocks)
     {
-        var rockOrder = new[]
-        {
-            RockFormation.Type1, RockFormation.Type2, RockFormation.Type3, RockFormation.Type4, RockFormation.Type5
-        };
-
         var maxY = -1L;
         var movementIndex = 0;
         var settledRocks = new HashSet<Point>();
         var movements = ParseMovements(input);
+        var maxFormationHeight = _rockFormations.Sum(x => x.Height);
+
         for (var rockIndex = 0L; rockIndex < numberOfRocks; rockIndex++)
         {
-            var formation = rockOrder[rockIndex % rockOrder.Length];
+            var formation = _rockFormations[rockIndex % _rockFormations.Length];
+
             var rock = new Rock(formation, new Point(2, maxY + 4));
 
             do
@@ -44,6 +48,8 @@ public class Day17PyroclasticFlow : IChallenge
 
             settledRocks.UnionWith(rock);
             maxY = long.Max(maxY, rock.Max(x => x.Y));
+
+            settledRocks.RemoveWhere(point => point.Y < maxY - maxFormationHeight);
         }
 
         // add 1 since 0 is counted as the first row of rock
@@ -101,6 +107,14 @@ public class Day17PyroclasticFlow : IChallenge
         }
 
         public IReadOnlyCollection<Boundary> Boundaries { get; }
+        public int Width => CalculateBoundaryDistance(x => x.XOffset);
+        public int Height => CalculateBoundaryDistance(x => x.YOffset);
+
+        private int CalculateBoundaryDistance(Func<Boundary, int> selector)
+        {
+            var range = Boundaries.ToRange(selector)!;
+            return range.End - range.Start + 1;
+        }
     }
 
     private record Point(long X, long Y);
@@ -108,14 +122,14 @@ public class Day17PyroclasticFlow : IChallenge
     private class Rock : IEnumerable<Point>
     {
         private const int ChamberWidth = 7;
-        private readonly RockFormation _formation;
 
         public Rock(RockFormation formation, Point location)
         {
-            _formation = formation;
+            Formation = formation;
             Location = location;
         }
 
+        public RockFormation Formation { get; }
         public Point Location { get; private set; }
 
         public IEnumerator<Point> GetEnumerator() => EnumerateBoundaries(Location).GetEnumerator();
@@ -148,7 +162,7 @@ public class Day17PyroclasticFlow : IChallenge
 
         private IEnumerable<Point> EnumerateBoundaries(Point location)
         {
-            foreach (var boundary in _formation.Boundaries)
+            foreach (var boundary in Formation.Boundaries)
             {
                 yield return new Point(location.X + boundary.XOffset, location.Y + boundary.YOffset);
             }
