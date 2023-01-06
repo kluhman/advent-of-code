@@ -65,6 +65,23 @@ public class Day17PyroclasticFlow : IChallenge
         })
         .ToList();
 
+    private static void DrawChamber(IReadOnlyCollection<Rock> rocks)
+    {
+        var points = rocks.SelectMany(rock => rock.Select(point => new { point, rock.Formation.Id })).ToHashSet();
+        var map = points.ToDictionary(x => x.point, x => x.Id);
+        var highPoint = map.Keys.Max(point => point.Y);
+        for (var y = highPoint; y >= 0; y--)
+        {
+            Console.Write("|");
+            for (var x = 0; x < 7; x++)
+            {
+                Console.Write(map.GetValueOrDefault(new Point(x, y), "."));
+            }
+
+            Console.WriteLine("|");
+        }
+    }
+
     private record Boundary(int XOffset, int YOffset);
 
     private record Movement(int XOffset, int YOffset)
@@ -74,38 +91,40 @@ public class Day17PyroclasticFlow : IChallenge
         public static readonly Movement Down = new(0, -1);
     }
 
-    private class RockFormation
+    private record RockFormation
     {
-        public static readonly RockFormation Type1 = new(new Boundary[]
+        public static readonly RockFormation Type1 = new("1", new Boundary[]
         {
             new(0, 0), new(1, 0), new(2, 0), new(3, 0)
         });
 
-        public static readonly RockFormation Type2 = new(new Boundary[]
+        public static readonly RockFormation Type2 = new("2", new Boundary[]
         {
             new(1, 0), new(0, 1), new(1, 1), new(2, 1), new(1, 2)
         });
 
-        public static readonly RockFormation Type3 = new(new Boundary[]
+        public static readonly RockFormation Type3 = new("3", new Boundary[]
         {
             new(0, 0), new(1, 0), new(2, 0), new(2, 1), new(2, 2)
         });
 
-        public static readonly RockFormation Type4 = new(new Boundary[]
+        public static readonly RockFormation Type4 = new("4", new Boundary[]
         {
             new(0, 0), new(0, 1), new(0, 2), new(0, 3)
         });
 
-        public static readonly RockFormation Type5 = new(new Boundary[]
+        public static readonly RockFormation Type5 = new("5", new Boundary[]
         {
             new(0, 0), new(0, 1), new(1, 0), new(1, 1)
         });
 
-        public RockFormation(IReadOnlyCollection<Boundary> boundaries)
+        public RockFormation(string id, IReadOnlyCollection<Boundary> boundaries)
         {
+            Id = id;
             Boundaries = boundaries;
         }
 
+        public string Id { get; }
         public IReadOnlyCollection<Boundary> Boundaries { get; }
         public int Width => CalculateBoundaryDistance(x => x.XOffset);
         public int Height => CalculateBoundaryDistance(x => x.YOffset);
