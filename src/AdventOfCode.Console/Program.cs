@@ -2,8 +2,12 @@
 using AdventOfCode.Core;
 using Spectre.Console;
 
-var autoRun = args.Contains("--auto");
-var (year, day) = autoRun ? GetCurrentChallenge() : GetChallenge();
+var (year, day) = args switch
+{
+    ["--auto"] => GetCurrentChallenge(),
+    [var yearStr, var dayStr] => (int.Parse(yearStr), int.Parse(dayStr)),
+    _ => PromptForChallenge()
+};
 
 if (!File.Exists("input.txt"))
 {
@@ -26,7 +30,7 @@ catch (Exception ex) when (ex is FileLoadException or FileNotFoundException)
 
 static (int year, int day) GetCurrentChallenge() => (DateTime.Now.Year, DateTime.Now.Day);
 
-static (int year, int day) GetChallenge()
+static (int year, int day) PromptForChallenge()
 {
     const int minYear = 2015;
     var maxYear = DateTime.Now.Year;
