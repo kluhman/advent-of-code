@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Immutable;
 using AdventOfCode.Core;
 using AdventOfCode.Core.Extensions;
 
@@ -6,54 +7,44 @@ namespace AdventOfCode2022;
 
 public class Day17PyroclasticFlow : IChallenge
 {
-    private readonly RockFormation[] _rockFormations =
-    {
-        RockFormation.Type1, RockFormation.Type2, RockFormation.Type3, RockFormation.Type4, RockFormation.Type5
-    };
+    private readonly PatternFinder _patternFinder = new();
 
     public int ChallengeId => 17;
 
-    public object SolvePart1(string input)
-    {
-        const int numberOfRocks = 2022;
-        return RunRockFallingSimulation(input, numberOfRocks);
-    }
+    public object SolvePart1(string input) => SolveWithPatternFinding(input, 2022);
+    public object SolvePart2(string input) => SolveWithPatternFinding(input, 1000000000000);
 
-    public object SolvePart2(string input)
+    private object SolveWithPatternFinding(string input, long numberOfRocks)
     {
-        const long numberOfRocks = 1000000000000;
-        return RunRockFallingSimulation(input, numberOfRocks);
-    }
-
-    private long RunRockFallingSimulation(string input, long numberOfRocks)
-    {
-        var maxY = -1L;
-        var movementIndex = 0;
-        var settledRocks = new HashSet<Point>();
         var movements = ParseMovements(input);
-        var maxFormationHeight = _rockFormations.Sum(x => x.Height);
 
-        for (var rockIndex = 0L; rockIndex < numberOfRocks; rockIndex++)
+        // we must do at least (movements * rock types) rocks to ensure every rock goes through every motion
+        // the first iteration of that pattern begins on the ground, and the second iteration from the top of the highest rock, so we double the rocks
+        // to ensure we find a pattern that relies on the rocks before it
+        var patternSampleSize = movements.Count * RockFormation.Types.Count * 2;
+        var simulator = new Simulator(movements);
+
+        if (patternSampleSize >= numberOfRocks)
         {
-            var formation = _rockFormations[rockIndex % _rockFormations.Length];
-
-            var rock = new Rock(formation, new Point(2, maxY + 4));
-
-            do
-            {
-                var movement = movements[movementIndex % movements.Count];
-                rock.TryMove(movement, settledRocks);
-                movementIndex++;
-            } while (rock.TryMove(Movement.Down, settledRocks));
-
-            settledRocks.UnionWith(rock);
-            maxY = long.Max(maxY, rock.Max(x => x.Y));
-
-            settledRocks.RemoveWhere(point => point.Y < maxY - maxFormationHeight);
+            simulator.Simulate(numberOfRocks);
+            return simulator.MaxHeight;
         }
 
-        // add 1 since 0 is counted as the first row of rock
-        return maxY + 1;
+        simulator.Simulate(patternSampleSize);
+        var pattern = _patternFinder.FindMaximumPattern(simulator.Rocks.ToImmutableArray());
+        if (pattern is null)
+        {
+            throw new Exception("No pattern found, try larger sample");
+        }
+
+        var rocksToSimulate = numberOfRocks - patternSampleSize;
+        var patternRepetitions = rocksToSimulate / pattern.RocksInPattern;
+        var height = simulator.MaxHeight + pattern.GetHeight() * patternRepetitions;
+
+        rocksToSimulate -= patternRepetitions * pattern.RocksInPattern;
+        height += pattern.GetHeight(rocksToSimulate);
+
+        return height;
     }
 
     private static IReadOnlyList<Movement> ParseMovements(string input) => input.Trim()
@@ -91,49 +82,34 @@ public class Day17PyroclasticFlow : IChallenge
         public static readonly Movement Down = new(0, -1);
     }
 
-    private record RockFormation
+    private record RockFormation(string Id, IReadOnlyCollection<Boundary> Boundaries)
     {
-        public static readonly RockFormation Type1 = new("1", new Boundary[]
+        private static readonly RockFormation Type1 = new("1", new Boundary[]
         {
             new(0, 0), new(1, 0), new(2, 0), new(3, 0)
         });
 
-        public static readonly RockFormation Type2 = new("2", new Boundary[]
+        private static readonly RockFormation Type2 = new("2", new Boundary[]
         {
             new(1, 0), new(0, 1), new(1, 1), new(2, 1), new(1, 2)
         });
 
-        public static readonly RockFormation Type3 = new("3", new Boundary[]
+        private static readonly RockFormation Type3 = new("3", new Boundary[]
         {
             new(0, 0), new(1, 0), new(2, 0), new(2, 1), new(2, 2)
         });
 
-        public static readonly RockFormation Type4 = new("4", new Boundary[]
+        private static readonly RockFormation Type4 = new("4", new Boundary[]
         {
             new(0, 0), new(0, 1), new(0, 2), new(0, 3)
         });
 
-        public static readonly RockFormation Type5 = new("5", new Boundary[]
+        private static readonly RockFormation Type5 = new("5", new Boundary[]
         {
             new(0, 0), new(0, 1), new(1, 0), new(1, 1)
         });
 
-        public RockFormation(string id, IReadOnlyCollection<Boundary> boundaries)
-        {
-            Id = id;
-            Boundaries = boundaries;
-        }
-
-        public string Id { get; }
-        public IReadOnlyCollection<Boundary> Boundaries { get; }
-        public int Width => CalculateBoundaryDistance(x => x.XOffset);
-        public int Height => CalculateBoundaryDistance(x => x.YOffset);
-
-        private int CalculateBoundaryDistance(Func<Boundary, int> selector)
-        {
-            var range = Boundaries.ToRange(selector)!;
-            return range.End - range.Start + 1;
-        }
+        public static readonly IReadOnlyList<RockFormation> Types = new[] { Type1, Type2, Type3, Type4, Type5 };
     }
 
     private record Point(long X, long Y);
@@ -185,6 +161,144 @@ public class Day17PyroclasticFlow : IChallenge
             {
                 yield return new Point(location.X + boundary.XOffset, location.Y + boundary.YOffset);
             }
+        }
+    }
+
+    private class Simulator
+    {
+        private readonly IReadOnlyList<Movement> _movements;
+
+        private readonly List<Rock> _rocks;
+
+        public Simulator(IReadOnlyList<Movement> movements)
+        {
+            _rocks = new List<Rock>();
+            _movements = movements;
+        }
+
+        public int MovementIndex { get; private set; }
+        public long MaxHeight { get; private set; } = -1;
+        public IReadOnlyList<Rock> Rocks => _rocks;
+
+        public void Simulate(long numberOfRocks)
+        {
+            var settledRocks = new HashSet<Point>();
+            for (var i = 0L; i < numberOfRocks; i++)
+            {
+                var formation = RockFormation.Types[Rocks.Count % RockFormation.Types.Count];
+                var rock = new Rock(formation, new Point(2, MaxHeight + 4));
+
+                do
+                {
+                    var movement = _movements[MovementIndex % _movements.Count];
+                    rock.TryMove(movement, settledRocks);
+                    MovementIndex++;
+                } while (rock.TryMove(Movement.Down, settledRocks));
+
+                _rocks.Add(rock);
+                settledRocks.UnionWith(rock);
+                MaxHeight = long.Max(MaxHeight, rock.Max(x => x.Y));
+
+                settledRocks.RemoveWhere(x => x.Y < MaxHeight - 100);
+            }
+
+            // since we're measuring from 0, add 1 to get the max height of the structure
+            MaxHeight++;
+        }
+
+        public void Draw()
+        {
+            var points = Rocks.SelectMany(rock => rock.Select(point => new { point, rock.Formation.Id })).ToHashSet();
+            var map = points.ToDictionary(x => x.point, x => x.Id);
+            var highPoint = map.Keys.Max(point => point.Y);
+            for (var y = highPoint; y >= 0; y--)
+            {
+                Console.Write("|");
+                for (var x = 0; x < 7; x++)
+                {
+                    Console.Write(map.GetValueOrDefault(new Point(x, y), "."));
+                }
+
+                Console.WriteLine("|");
+            }
+        }
+    }
+
+    private class PatternFinder
+    {
+        public RockPattern? FindMaximumPattern(ImmutableArray<Rock> rocks)
+        {
+            // only need to check half of the list, since the max pattern would be repeated exactly once in the collection
+            for (var topStart = rocks.Length / 2; topStart < rocks.Length; topStart++)
+            {
+                var top = rocks[topStart..];
+                var bottomStart = topStart - top.Length;
+
+                if (bottomStart < 0)
+                {
+                    continue;
+                }
+
+                var bottom = rocks[bottomStart..topStart];
+                if (IsEquivalent(top, bottom))
+                {
+                    return new RockPattern(top);
+                }
+            }
+
+            return null;
+        }
+
+        private static bool IsEquivalent(IReadOnlyList<Rock> top, IReadOnlyList<Rock> bottom)
+        {
+            if (top.Count != bottom.Count)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < top.Count; i++)
+            {
+                if (top[i].Location.X != bottom[i].Location.X)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    private class RockPattern
+    {
+        private readonly IReadOnlyList<Rock> _rocks;
+
+        public RockPattern(IReadOnlyList<Rock> rocks)
+        {
+            _rocks = rocks;
+        }
+
+        public int RocksInPattern => _rocks.Count;
+
+        public long GetHeight(long? numberOfRocks = null)
+        {
+            if (numberOfRocks is not null && numberOfRocks > RocksInPattern)
+            {
+                throw new ArgumentException("Cannot find height for rocks greater than number of rocks in pattern");
+            }
+
+            var rocks = numberOfRocks is null ? _rocks : _rocks.Take((int)numberOfRocks.Value);
+            return GetHeight(rocks);
+        }
+
+        private static long GetHeight(IEnumerable<Rock> rocks)
+        {
+            var verticalRange = rocks.SelectMany(rock => rock).ToRange(x => x.Y)!;
+            if (verticalRange is null)
+            {
+                return 0;
+            }
+
+            return verticalRange.End - verticalRange.Start + 1;
         }
     }
 }
