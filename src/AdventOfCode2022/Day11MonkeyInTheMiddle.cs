@@ -22,7 +22,7 @@ public class Day11MonkeyInTheMiddle : IChallenge
         return PlayGame(monkeys, numberOfRounds, worry => worry % leastCommonMultiple);
     }
 
-    private static object PlayGame(List<Monkey> monkeys, int numberOfRounds, Func<Int128, Int128> relieve)
+    private static object PlayGame(List<Monkey> monkeys, int numberOfRounds, Func<long, long> relieve)
     {
         for (var round = 0; round < numberOfRounds; round++)
         {
@@ -40,7 +40,7 @@ public class Day11MonkeyInTheMiddle : IChallenge
         return monkeys
             .OrderByDescending(x => x.Inspections)
             .Take(2)
-            .Aggregate(Int128.One, (current, monkey) => current * monkey.Inspections);
+            .Aggregate(1L, (current, monkey) => current * monkey.Inspections);
     }
 
     private static IEnumerable<Monkey> ParseMonkeys(string input)
@@ -52,7 +52,7 @@ public class Day11MonkeyInTheMiddle : IChallenge
         }
     }
 
-    private static Int128 GreatestCommonDenominator(Int128 left, Int128 right)
+    private static long GreatestCommonDenominator(long left, long right)
     {
         if (right == 0)
         {
@@ -62,7 +62,7 @@ public class Day11MonkeyInTheMiddle : IChallenge
         return GreatestCommonDenominator(right, left % right);
     }
 
-    private static Int128 LeastCommonMultiple(List<Monkey> monkeys)
+    private static long LeastCommonMultiple(List<Monkey> monkeys)
     {
         var numbers = monkeys.Select(x => x.Test.Denominator).Order();
         return numbers.Aggregate((left, val) => left * val / GreatestCommonDenominator(left, val));
@@ -70,24 +70,24 @@ public class Day11MonkeyInTheMiddle : IChallenge
 
     private class Monkey
     {
-        private readonly Queue<Int128> _items;
+        private readonly Queue<long> _items;
         private readonly Operation _operation;
 
-        public Monkey(Int128 id, IEnumerable<Int128> items, Operation operation, Test test)
+        public Monkey(long id, IEnumerable<long> items, Operation operation, Test test)
         {
             Id = id;
-            _items = new Queue<Int128>(items);
+            _items = new Queue<long>(items);
             _operation = operation;
             Test = test;
         }
 
-        public Int128 Id { get; }
+        public long Id { get; }
         public Test Test { get; }
 
-        public IReadOnlyCollection<Int128> Items => _items;
-        public Int128 Inspections { get; private set; }
+        public IReadOnlyCollection<long> Items => _items;
+        public long Inspections { get; private set; }
 
-        public Int128 Inspect()
+        public long Inspect()
         {
             var itemWorry = _items.Dequeue();
             itemWorry = _operation.CalculateWorry(itemWorry);
@@ -96,7 +96,7 @@ public class Day11MonkeyInTheMiddle : IChallenge
             return itemWorry;
         }
 
-        public void Throw(Int128 item, IEnumerable<Monkey> monkeys)
+        public void Throw(long item, IEnumerable<Monkey> monkeys)
         {
             var newMonkeyId = Test.TestWorryLevel(item);
             var newMonkey = monkeys.Single(x => x.Id == newMonkeyId);
@@ -108,8 +108,8 @@ public class Day11MonkeyInTheMiddle : IChallenge
             var idMatch = Regex.Match(lines[0], @"Monkey (?<id>\d+):");
             var itemMatches = Regex.Matches(lines[1], @"\d+");
 
-            var id = Int128.Parse(idMatch.Groups["id"].Value);
-            var items = new Queue<Int128>(itemMatches.Select(x => Int128.Parse(x.Value)));
+            var id = long.Parse(idMatch.Groups["id"].Value);
+            var items = new Queue<long>(itemMatches.Select(x => long.Parse(x.Value)));
             var operation = Operation.Parse(lines[2]);
             var test = Test.Parse(lines[3..]);
 
@@ -125,18 +125,18 @@ public class Day11MonkeyInTheMiddle : IChallenge
 
     private class Test
     {
-        public Test(Int128 denominator, Int128 onTrue, Int128 onFalse)
+        public Test(long denominator, long onTrue, long onFalse)
         {
             Denominator = denominator;
             OnTrue = onTrue;
             OnFalse = onFalse;
         }
 
-        public Int128 Denominator { get; }
-        public Int128 OnTrue { get; }
-        public Int128 OnFalse { get; }
+        public long Denominator { get; }
+        public long OnTrue { get; }
+        public long OnFalse { get; }
 
-        public Int128 TestWorryLevel(Int128 worryLevel) => worryLevel % Denominator == 0 ? OnTrue : OnFalse;
+        public long TestWorryLevel(long worryLevel) => worryLevel % Denominator == 0 ? OnTrue : OnFalse;
 
         public static Test Parse(string[] lines)
         {
@@ -193,7 +193,7 @@ public class Day11MonkeyInTheMiddle : IChallenge
         public Operator Operator { get; }
         public ISymbol Right { get; }
 
-        public Int128 CalculateWorry(Int128 worryLevel)
+        public long CalculateWorry(long worryLevel)
         {
             var left = EvaluateSymbol(Left, worryLevel);
             var right = EvaluateSymbol(Right, worryLevel);
@@ -206,7 +206,7 @@ public class Day11MonkeyInTheMiddle : IChallenge
             };
         }
 
-        private static Int128 EvaluateSymbol(ISymbol symbol, Int128 worryLevel)
+        private static long EvaluateSymbol(ISymbol symbol, long worryLevel)
         {
             return symbol switch
             {
