@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using AdventOfCode.Core;
+using AdventOfCode.Core.Extensions;
 
 namespace AdventOfCode2021;
 
@@ -9,7 +10,7 @@ public class Day4GiantSquid : IChallenge
 
     public object SolvePart1(string input)
     {
-        var lines = input.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var lines = input.GetLines();
         var numbers = lines.First().Split(',').Select(int.Parse).ToArray();
         var boards = ParseBoards(lines).ToList();
 
@@ -31,7 +32,7 @@ public class Day4GiantSquid : IChallenge
 
     public object SolvePart2(string input)
     {
-        var lines = input.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var lines = input.GetLines();
         var numbers = lines.First().Split(',').Select(int.Parse).ToArray();
         var boards = ParseBoards(lines).ToList();
 

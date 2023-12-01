@@ -45,7 +45,7 @@ public class Day14RegolithResovoir : IChallenge
 
     private static IEnumerable<Line> ParseLineSegments(string input)
     {
-        var lines = input.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var lines = input.GetLines();
         foreach (var line in lines)
         {
             var points = line.Split("->", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);

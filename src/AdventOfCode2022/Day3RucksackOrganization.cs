@@ -1,4 +1,5 @@
 ﻿using AdventOfCode.Core;
+using AdventOfCode.Core.Extensions;
 
 namespace AdventOfCode2022;
 
@@ -9,7 +10,7 @@ internal class Day3RucksackOrganization : IChallenge
     public object SolvePart1(string input)
     {
         var commonItems = new List<char>();
-        var lines = input.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var lines = input.GetLines();
         foreach (var line in lines)
         {
             var divider = line.Length / 2;
@@ -37,7 +38,7 @@ internal class Day3RucksackOrganization : IChallenge
     public object SolvePart2(string input)
     {
         var badges = new List<char>();
-        var lines = input.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var lines = input.GetLines();
         for (var i = 0; i < lines.Length; i += 3)
         {
             var firstSack = lines[i + 0];

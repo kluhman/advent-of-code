@@ -1,4 +1,5 @@
 ﻿using AdventOfCode.Core;
+using AdventOfCode.Core.Extensions;
 using AdventOfCode.Core.Models;
 
 namespace AdventOfCode2022;
@@ -10,7 +11,7 @@ internal class Day4CampCleanup : IChallenge
     public object SolvePart1(string input)
     {
         var uselessAssignments = 0;
-        var lines = input.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var lines = input.GetLines();
         foreach (var line in lines)
         {
             var assignments = line.Split(',', 2);
@@ -32,7 +33,7 @@ internal class Day4CampCleanup : IChallenge
     public object SolvePart2(string input)
     {
         var overlappingAssignments = 0;
-        var lines = input.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var lines = input.GetLines();
         foreach (var line in lines)
         {
             var assignments = line.Split(',', 2);

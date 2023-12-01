@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using AdventOfCode.Core;
+using AdventOfCode.Core.Extensions;
 
 namespace AdventOfCode2022;
 
@@ -40,7 +41,7 @@ internal class Day2RockPaperScissors : IChallenge
     public object SolvePart1(string input)
     {
         var points = 0;
-        var lines = input.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var lines = input.GetLines();
         foreach (var line in lines)
         {
             var selections = line.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -80,7 +81,7 @@ internal class Day2RockPaperScissors : IChallenge
     public object SolvePart2(string input)
     {
         var points = 0;
-        var lines = input.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var lines = input.GetLines();
         foreach (var line in lines)
         {
             var selections = line.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

@@ -1,4 +1,5 @@
 ﻿using AdventOfCode.Core;
+using AdventOfCode.Core.Extensions;
 
 namespace AdventOfCode2022;
 
@@ -31,7 +32,7 @@ internal class Day9RopeBridge : IChallenge
 
     private static IEnumerable<Move> ParseMoves(string input)
     {
-        var lines = input.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var lines = input.GetLines();
         foreach (var line in lines)
         {
             var parts = line.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);

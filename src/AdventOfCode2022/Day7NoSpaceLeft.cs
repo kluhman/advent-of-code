@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using AdventOfCode.Core;
+using AdventOfCode.Core.Extensions;
 
 namespace AdventOfCode2022;
 
@@ -29,7 +30,7 @@ internal class Day7NoSpaceLeft : IChallenge
     private static FileSystem ParseFileSystem(string input)
     {
         var fileSystem = new FileSystem();
-        var lines = input.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var lines = input.GetLines();
 
         foreach (var line in lines)
         {

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using AdventOfCode.Core;
+using AdventOfCode.Core.Extensions;
 
 namespace AdventOfCode2022;
 
@@ -30,7 +31,7 @@ public class Day13DistressSignal : IChallenge
 
     private static IEnumerable<DataPair> ParseDataPairs(string input)
     {
-        var lines = input.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var lines = input.GetLines();
         for (var index = 0; index < lines.Length; index += 2)
         {
             var endIndex = index + 2;

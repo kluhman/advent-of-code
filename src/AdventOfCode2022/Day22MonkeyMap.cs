@@ -25,7 +25,7 @@ public class Day22MonkeyMap : IChallenge
 
     private static (Board board, IEnumerable<(Direction direction, int steps)> movements) ParseBoard(string input)
     {
-        var lines = input.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        var lines = input.GetLines(StringSplitOptions.RemoveEmptyEntries);
         var boardLines = lines[..^1];
         var directions = lines[^1];
 

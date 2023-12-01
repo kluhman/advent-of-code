@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using AdventOfCode.Core;
+using AdventOfCode.Core.Extensions;
 
 namespace AdventOfCode2022;
 
@@ -9,7 +10,7 @@ internal class Day5SupplyStacks : IChallenge
 
     public object SolvePart1(string input)
     {
-        var lines = input.Split('\n').Select(x => x.TrimEnd()).ToList();
+        var lines = input.GetLines(StringSplitOptions.None).Select(x => x.TrimEnd()).ToList();
         var dividerIndex = lines.IndexOf(string.Empty);
         var crateMap = lines.Take(dividerIndex).ToArray();
         var operations = lines.Skip(dividerIndex + 1).ToArray();
@@ -21,7 +22,7 @@ internal class Day5SupplyStacks : IChallenge
 
     public object SolvePart2(string input)
     {
-        var lines = input.Split('\n').Select(x => x.TrimEnd()).ToList();
+        var lines = input.GetLines(StringSplitOptions.None).Select(x => x.TrimEnd()).ToList();
         var dividerIndex = lines.IndexOf(string.Empty);
         var crateMap = lines.Take(dividerIndex).ToArray();
         var operations = lines.Skip(dividerIndex + 1).ToArray();

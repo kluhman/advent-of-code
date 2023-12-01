@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using AdventOfCode.Core;
+using AdventOfCode.Core.Extensions;
 
 namespace AdventOfCode2022;
 
@@ -222,7 +223,7 @@ internal class Day8TreetopTreeHouse : IChallenge
 
         public static TreeMap Parse(string input)
         {
-            var lines = input.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            var lines = input.GetLines();
 
             var rows = lines.Length;
             var columns = lines[0].Length;

@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using AdventOfCode.Core;
+using AdventOfCode.Core.Extensions;
 
 namespace AdventOfCode2022;
 
@@ -45,7 +46,7 @@ public class Day11MonkeyInTheMiddle : IChallenge
 
     private static IEnumerable<Monkey> ParseMonkeys(string input)
     {
-        var lines = input.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var lines = input.GetLines();
         for (var index = 0; index < lines.Length; index += 6)
         {
             yield return Monkey.Parse(lines[index..(index + 6)]);

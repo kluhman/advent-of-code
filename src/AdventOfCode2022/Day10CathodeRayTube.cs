@@ -1,4 +1,5 @@
 ﻿using AdventOfCode.Core;
+using AdventOfCode.Core.Extensions;
 
 namespace AdventOfCode2022;
 
@@ -55,7 +56,7 @@ public class Day10CathodeRayTube : IChallenge
 
     private static IEnumerable<Instruction> ParseInstructions(string input)
     {
-        var lines = input.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var lines = input.GetLines();
         foreach (var line in lines)
         {
             var parts = line.Split(' ');

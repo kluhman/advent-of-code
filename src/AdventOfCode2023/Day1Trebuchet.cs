@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using AdventOfCode.Core;
+using AdventOfCode.Core.Extensions;
 
 namespace AdventOfCode2023;
 
@@ -22,13 +23,13 @@ public class Day1Trebuchet : IChallenge
     public int ChallengeId => 1;
 
     public object SolvePart1(string input) => input
-        .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+        .GetLines()
         .Select(line => line.Where(char.IsDigit).ToImmutableArray())
         .Select(line => int.Parse(new string(new[] { line.First(), line.Last() })))
         .Sum();
 
     public object SolvePart2(string input) => input
-        .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+        .GetLines()
         .Select(line => GetDigits(line).ToImmutableArray())
         .Select(line => int.Parse(new string(new[] { line.First(), line.Last() })))
         .Sum();

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Threading.Tasks.Dataflow;
 using AdventOfCode.Core;
+using AdventOfCode.Core.Extensions;
 using AdventOfCode.Core.PathFinding;
 using AdventOfCode.Core.PathFinding.Exceptions;
 
@@ -170,7 +171,7 @@ public class Day12HillClimbing : IChallenge
 
         public static HeightMap Parse(string input)
         {
-            var lines = input.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            var lines = input.GetLines();
 
             var start = default(Coordinates);
             var end = default(Coordinates);
