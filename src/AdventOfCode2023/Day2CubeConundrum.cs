@@ -5,7 +5,7 @@ using AdventOfCode.Core.Extensions;
 
 namespace AdventOfCode2023;
 
-public class DayTwoCubeConundrum : IChallenge
+public class Day2CubeConundrum : IChallenge
 {
     public int ChallengeId => 2;
 
