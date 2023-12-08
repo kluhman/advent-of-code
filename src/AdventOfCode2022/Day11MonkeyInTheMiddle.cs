@@ -19,7 +19,7 @@ public class Day11MonkeyInTheMiddle : IChallenge
     {
         const int numberOfRounds = 10000;
         var monkeys = ParseMonkeys(input).ToList();
-        var leastCommonMultiple = LeastCommonMultiple(monkeys);
+        var leastCommonMultiple = ExtraMath.LeastCommonMultiple(monkeys.Select(x => x.Test.Denominator));
         return PlayGame(monkeys, numberOfRounds, worry => worry % leastCommonMultiple);
     }
 
@@ -51,22 +51,6 @@ public class Day11MonkeyInTheMiddle : IChallenge
         {
             yield return Monkey.Parse(lines[index..(index + 6)]);
         }
-    }
-
-    private static long GreatestCommonDenominator(long left, long right)
-    {
-        if (right == 0)
-        {
-            return left;
-        }
-
-        return GreatestCommonDenominator(right, left % right);
-    }
-
-    private static long LeastCommonMultiple(List<Monkey> monkeys)
-    {
-        var numbers = monkeys.Select(x => x.Test.Denominator).Order();
-        return numbers.Aggregate((left, val) => left * val / GreatestCommonDenominator(left, val));
     }
 
     private class Monkey

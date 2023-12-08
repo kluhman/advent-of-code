@@ -56,7 +56,7 @@ public class Day6BoatRacing : IChallenge
         // 0 = charge^2 - (charge * time) + distance
 
         // solve quadratic formula
-        var (charge1, charge2) = QuadraticFormula.Solve(1, -time, recordDistance);
+        var (charge1, charge2) = ExtraMath.QuadraticFormula(1, -time, recordDistance);
 
         // formula may produce fractional numbers, but you can't charge for partial seconds, so ceil and floor the bounds
         long lowerBound, upperBound;
