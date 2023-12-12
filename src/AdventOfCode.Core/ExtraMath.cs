@@ -30,4 +30,28 @@ public static class ExtraMath
     /// </summary>
     public static long LeastCommonMultiple(IEnumerable<long> numbers) => numbers
         .Aggregate((left, val) => left * val / GreatestCommonDenominator(left, val));
+
+    /// <summary>
+    ///     Factorial of X
+    /// </summary>
+    public static long Factorial(long x)
+    {
+        var factorial = 1L;
+        for (var i = 2L; i <= x; i++)
+        {
+            factorial *= i;
+        }
+
+        return factorial;
+    }
+
+    /// <summary>
+    ///     Calculates permutations (pick order matters) when picking x items from set of y total items
+    /// </summary>
+    public static long Permutations(long poolSize, long pickSize) => Factorial(poolSize) / Factorial(poolSize - pickSize);
+
+    /// <summary>
+    ///     Calculates combinations (pick order does not matter) when picking x items from set of y total items
+    /// </summary>
+    public static long Combinations(long poolSize, long pickSize) => Factorial(poolSize) / (Factorial(pickSize) * Factorial(poolSize - pickSize));
 }
