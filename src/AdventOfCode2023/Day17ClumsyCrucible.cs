@@ -16,7 +16,7 @@ public class Day17ClumsyCrucible : IChallenge
         var start = new Position(0, 0, null);
         var end = new Position(map[0].Length - 1, map.Length - 1, null);
 
-        return PathFinder.FindShortestPath(graph, start, end);
+        return PathFinder.FindShortestPath(graph, start, end, ManhattanDistance);
     }
 
     public object SolvePart2(string input)
@@ -26,7 +26,7 @@ public class Day17ClumsyCrucible : IChallenge
         var start = new Position(0, 0, null);
         var end = new Position(map[0].Length - 1, map.Length - 1, null);
 
-        return PathFinder.FindShortestPath(graph, start, end);
+        return PathFinder.FindShortestPath(graph, start, end, ManhattanDistance);
     }
 
     private static WeightedGraph<Position> GetGraph(int[][] map, int minMovement = 1, int maxMovement = 3)
@@ -37,11 +37,13 @@ public class Day17ClumsyCrucible : IChallenge
                 .Range(0, map[y].Length)
                 .SelectMany(x =>
                 {
+                    // starting position has no travel direction
                     if (x == 0 && y == 0)
                     {
                         return new[] { new Position(0, 0, null) };
                     }
 
+                    // we don't care which direction we get to the destination with, so just mark it as null to make it easier to find
                     if (x == map[y].Length - 1 && y == map.Length - 1)
                     {
                         return new[] { new Position(x, y, null) };
@@ -61,6 +63,7 @@ public class Day17ClumsyCrucible : IChallenge
     {
         if (position.Direction is null or Direction.Horizontal)
         {
+            // we were going horizontal, so a left/right turn will move us either up or down the map
             var (upCost, downCost) = (0, 0);
             for (var yOffset = 1; yOffset <= maxMovement; yOffset++)
             {
@@ -80,6 +83,7 @@ public class Day17ClumsyCrucible : IChallenge
 
         if (position.Direction is null or Direction.Vertical)
         {
+            // we were going vertical, so a left/right turn will move us either left or right across the map
             var (leftCost, rightCost) = (0, 0);
             for (var xOffset = 1; xOffset <= maxMovement; xOffset++)
             {
@@ -115,6 +119,7 @@ public class Day17ClumsyCrucible : IChallenge
 
         if (to.X == map[to.Y].Length - 1 && to.Y == map.Length - 1)
         {
+            // we don't care which direction we get to the destination with, so just mark it as null to make it easier to find
             to = to with { Direction = null };
         }
 
@@ -129,6 +134,8 @@ public class Day17ClumsyCrucible : IChallenge
 
         return withinWidth && withinHeight;
     }
+
+    private static int ManhattanDistance(Position from, Position to) => Math.Abs(to.X - from.X) + Math.Abs(to.Y - from.Y);
 
     private static int[][] ParseMap(string input) => input
         .GetLines()
