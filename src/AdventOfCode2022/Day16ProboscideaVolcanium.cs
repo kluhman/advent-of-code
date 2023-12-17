@@ -76,7 +76,7 @@ public class Day16ProboscideaVolcanium : IChallenge
         var actor = actors.OrderByDescending(x => x.MinutesRemaining).First();
 
         var max = 0;
-        var valvesGroupedByDistance = usefulValves.GroupBy(valve => graph.Edges[actor.CurrentValve].Single(x => x.To == valve).Weight);
+        var valvesGroupedByDistance = usefulValves.GroupBy(valve => graph.GetEdges(actor.CurrentValve).Single(x => x.To == valve).Weight);
 
         foreach (var group in valvesGroupedByDistance)
         {

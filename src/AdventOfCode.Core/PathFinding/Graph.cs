@@ -14,12 +14,21 @@ public class Graph<TNode> where TNode : notnull
 
 public class WeightedGraph<TNode> where TNode : notnull
 {
+    private readonly Func<TNode, IEnumerable<WeightedEdge<TNode>>> _getNodes;
+
     public WeightedGraph(IEnumerable<TNode> nodes, IEnumerable<WeightedEdge<TNode>> edges)
     {
+        var lookup = edges.ToLookup(x => x.From);
         Nodes = nodes.ToHashSet();
-        Edges = edges.ToLookup(x => x.From);
+        _getNodes = node => lookup[node];
+    }
+
+    public WeightedGraph(IEnumerable<TNode> nodes, Func<TNode, IEnumerable<WeightedEdge<TNode>>> getEdges)
+    {
+        Nodes = nodes.ToHashSet();
+        _getNodes = getEdges;
     }
 
     public IReadOnlySet<TNode> Nodes { get; }
-    public ILookup<TNode, WeightedEdge<TNode>> Edges { get; }
+    public IEnumerable<WeightedEdge<TNode>> GetEdges(TNode node) => _getNodes(node);
 }

@@ -46,7 +46,7 @@ public class PathFinder
         {
             unvisitedNodes.Remove(position);
 
-            foreach (var edge in graph.Edges[position])
+            foreach (var edge in graph.GetEdges(position))
             {
                 var newDistance = distance[position] + edge.Weight;
                 if (!distance.TryGetValue(edge.To, out var oldDistance) || newDistance < oldDistance)

@@ -1,4 +1,5 @@
-﻿using AdventOfCode.Core;
+﻿using System.Diagnostics.CodeAnalysis;
+using AdventOfCode.Core;
 using AdventOfCode.Core.Extensions;
 using AdventOfCode.Core.PathFinding;
 
@@ -11,106 +12,122 @@ public class Day17ClumsyCrucible : IChallenge
     public object SolvePart1(string input)
     {
         var map = ParseMap(input);
-        return FindPath(map);
+        var graph = GetGraph(map);
+        var start = new Position(0, 0, null);
+        var end = new Position(map[0].Length - 1, map.Length - 1, null);
+
+        return PathFinder.FindShortestPath(graph, start, end);
     }
 
     public object SolvePart2(string input)
     {
-        throw new NotImplementedException();
-
         var map = ParseMap(input);
-        return FindPath(map);
+        var graph = GetGraph(map, 4, 10);
+        var start = new Position(0, 0, null);
+        var end = new Position(map[0].Length - 1, map.Length - 1, null);
+
+        return PathFinder.FindShortestPath(graph, start, end);
     }
 
-    private int FindPath(int[][] map)
+    private static WeightedGraph<Position> GetGraph(int[][] map, int minMovement = 1, int maxMovement = 3)
     {
-        var end = new Position(map[0].Length - 1, map.Length - 1, null);
-        var position = new Position(0, 0, null);
-        var visits = new HashSet<Position>();
-        var distance = new Dictionary<Position, int> { { position, 0 } };
-
-        while (position.X != end.X || position.Y != end.Y)
-        {
-            visits.Add(position);
-
-            foreach (var edge in GetEdges(map, position))
-            {
-                var newDistance = distance[position] + edge.Weight;
-                if (!distance.TryGetValue(edge.To, out var oldDistance) || newDistance < oldDistance)
+        var nodes = Enumerable
+            .Range(0, map.Length)
+            .SelectMany(y => Enumerable
+                .Range(0, map[y].Length)
+                .SelectMany(x =>
                 {
-                    distance[edge.To] = newDistance;
+                    if (x == 0 && y == 0)
+                    {
+                        return new[] { new Position(0, 0, null) };
+                    }
+
+                    if (x == map[y].Length - 1 && y == map.Length - 1)
+                    {
+                        return new[] { new Position(x, y, null) };
+                    }
+
+                    return new[]
+                    {
+                        new Position(x, y, Direction.Horizontal),
+                        new Position(x, y, Direction.Vertical)
+                    };
+                }));
+
+        return new WeightedGraph<Position>(nodes, node => GetEdges(map, node, minMovement, maxMovement));
+    }
+
+    private static IEnumerable<WeightedEdge<Position>> GetEdges(int[][] map, Position position, int minMovement, int maxMovement)
+    {
+        if (position.Direction is null or Direction.Horizontal)
+        {
+            var (upCost, downCost) = (0, 0);
+            for (var yOffset = 1; yOffset <= maxMovement; yOffset++)
+            {
+                var up = position with { Y = position.Y - yOffset, Direction = Direction.Vertical };
+                if (TryAddEdge(map, minMovement, position, up, yOffset, ref upCost, out var edge))
+                {
+                    yield return edge;
+                }
+
+                var down = position with { Y = position.Y + yOffset, Direction = Direction.Vertical };
+                if (TryAddEdge(map, minMovement, position, down, yOffset, ref downCost, out edge))
+                {
+                    yield return edge;
                 }
             }
-
-            var newPosition = distance
-                .Keys
-                .Where(key => !visits.Contains(key)).MinBy(key => distance[key]);
-
-            if (newPosition is null)
-            {
-                break;
-            }
-
-            position = newPosition;
         }
 
-        return distance.Keys.Where(key => key.X == end.X && key.Y == end.Y).Min(key => distance[key]);
+        if (position.Direction is null or Direction.Vertical)
+        {
+            var (leftCost, rightCost) = (0, 0);
+            for (var xOffset = 1; xOffset <= maxMovement; xOffset++)
+            {
+                var left = position with { X = position.X - xOffset, Direction = Direction.Horizontal };
+                if (TryAddEdge(map, minMovement, position, left, xOffset, ref leftCost, out var edge))
+                {
+                    yield return edge;
+                }
+
+                var right = position with { X = position.X + xOffset, Direction = Direction.Horizontal };
+                if (TryAddEdge(map, minMovement, position, right, xOffset, ref rightCost, out edge))
+                {
+                    yield return edge;
+                }
+            }
+        }
     }
 
-    private IEnumerable<WeightedEdge<Position>> GetEdges(int[][] map, Position position)
+    private static bool TryAddEdge(int[][] map, int minMovement, Position from, Position to, int offset, ref int cost,
+        [NotNullWhen(true)] out WeightedEdge<Position>? edge)
     {
-        var (xMaxOffset, yMaxOffset) = position.Direction switch
+        edge = null;
+        if (!IsInBounds(map, to))
         {
-            Direction.Left => (0, 3),
-            Direction.Right => (0, 3),
-            Direction.Up => (3, 0),
-            Direction.Down => (3, 0),
-            null => (3, 3),
-            _ => throw new ArgumentOutOfRangeException(nameof(position), position, null)
-        };
-
-        var edges = new List<WeightedEdge<Position>>();
-        var (leftWeight, rightWeight) = (0, 0);
-        for (var x = 1; x <= xMaxOffset; x++)
-        {
-            var leftX = position.X - x;
-            if (leftX >= 0)
-            {
-                leftWeight += map[position.Y][leftX];
-                var left = position with { X = leftX, Direction = Direction.Left };
-                edges.Add(new WeightedEdge<Position>(position, left, leftWeight));
-            }
-
-            var rightX = position.X + x;
-            if (rightX < map[position.Y].Length)
-            {
-                rightWeight += map[position.Y][rightX];
-                var right = position with { X = rightX, Direction = Direction.Right };
-                edges.Add(new WeightedEdge<Position>(position, right, rightWeight));
-            }
+            return false;
         }
 
-        var (upWeight, downWeight) = (0, 0);
-        for (var y = 1; y <= yMaxOffset; y++)
+        cost += map[to.Y][to.X];
+        if (offset < minMovement)
         {
-            var upY = position.Y - y;
-            if (upY >= 0)
-            {
-                upWeight += map[upY][position.X];
-                var up = position with { Y = upY, Direction = Direction.Up };
-                edges.Add(new WeightedEdge<Position>(position, up, upWeight));
-            }
-
-            var downY = position.Y + y;
-            if (downY < map.Length)
-            {
-                downWeight += map[downY][position.X];
-                var down = position with { Y = downY, Direction = Direction.Down };
-                edges.Add(new WeightedEdge<Position>(position, down, downWeight));
-            }
+            return false;
         }
 
-        return edges;
+        if (to.X == map[to.Y].Length - 1 && to.Y == map.Length - 1)
+        {
+            to = to with { Direction = null };
+        }
+
+        edge = new WeightedEdge<Position>(from, to, cost);
+        return true;
+    }
+
+    private static bool IsInBounds(int[][] map, Position position)
+    {
+        var withinWidth = position.X >= 0 && position.X < map[0].Length;
+        var withinHeight = position.Y >= 0 && position.Y < map.Length;
+
+        return withinWidth && withinHeight;
     }
 
     private static int[][] ParseMap(string input) => input
@@ -120,10 +137,8 @@ public class Day17ClumsyCrucible : IChallenge
 
     private enum Direction
     {
-        Left,
-        Right,
-        Up,
-        Down
+        Horizontal,
+        Vertical
     }
 
     private record Position(int X, int Y, Direction? Direction);
