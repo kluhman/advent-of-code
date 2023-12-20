@@ -1,4 +1,5 @@
-﻿using AdventOfCode.Core;
+﻿using System.Collections.Immutable;
+using AdventOfCode.Core;
 using AdventOfCode.Core.Extensions;
 
 namespace AdventOfCode2023;
@@ -9,7 +10,13 @@ public class Day20PulsePropagation : IChallenge
 
     public object SolvePart1(string input)
     {
-        var processor = BuildProcessor(input);
+        var processor = new Processor();
+        var modules = GetModules(input).ToImmutableArray();
+
+        foreach (var (module, outputs) in modules)
+        {
+            processor.Connect(module, outputs);
+        }
 
         for (var i = 0; i < 1000; i++)
         {
@@ -19,11 +26,45 @@ public class Day20PulsePropagation : IChallenge
         return processor.Score;
     }
 
-    public object SolvePart2(string input) => throw new NotImplementedException();
-
-    private static Processor BuildProcessor(string input)
+    public object SolvePart2(string input)
     {
         var processor = new Processor();
+        var modules = GetModules(input).ToImmutableArray();
+        MarkCriticalPath(modules, "rx");
+
+        var criticalCycleTimes = modules
+            .Where(x => x.module.InCriticalPath)
+            .ToDictionary(x => x.module, _ => (long?)null);
+
+        var buttonPresses = 0L;
+        foreach (var (module, outputs) in modules)
+        {
+            processor.Connect(module, outputs);
+            if (module.InCriticalPath)
+            {
+                module.OnPulse += (sender, args) =>
+                {
+                    if (args.Pulse == Pulse.High)
+                    {
+                        criticalCycleTimes[(Module)sender!] = buttonPresses;
+                    }
+                };
+            }
+        }
+
+        while (criticalCycleTimes.ContainsValue(null))
+        {
+            buttonPresses++;
+            processor.PushButton();
+        }
+
+        return ExtraMath.LeastCommonMultiple(criticalCycleTimes.Values.Cast<long>());
+    }
+
+    private static IEnumerable<(Module module, IReadOnlyList<string> outputs)> GetModules(string input)
+    {
+        var modules = new List<(Module module, IReadOnlyList<string> outputs)>();
+
         foreach (var line in input.GetLines())
         {
             var split = line.Split("->", StringSplitOptions.TrimEntries);
@@ -32,20 +73,34 @@ public class Day20PulsePropagation : IChallenge
 
             if (label == Broadcast.BroadcastLabel)
             {
-                processor.Connect(new Broadcast(), outputs);
+                modules.Add((new Broadcast(), outputs));
             }
             else
             {
-                processor.Connect(label[0] switch
+                modules.Add((label[0] switch
                 {
                     '%' => new FlipFlop(label[1..]),
                     '&' => new Conjunction(label[1..]),
                     _ => throw new ArgumentOutOfRangeException()
-                }, outputs);
+                }, outputs));
             }
         }
 
-        return processor;
+        return modules;
+    }
+
+    private static void MarkCriticalPath(ImmutableArray<(Module module, IReadOnlyList<string> outputs)> modules, string destination)
+    {
+        var dependencies = modules.Where(x => x.outputs.Contains(destination)).ToImmutableArray();
+        if (dependencies.Length == 1)
+        {
+            MarkCriticalPath(modules, dependencies.Single().module.Label);
+        }
+
+        foreach (var dependency in dependencies)
+        {
+            dependency.module.SetInCriticalPath();
+        }
     }
 
     private enum Pulse
@@ -115,8 +170,6 @@ public class Day20PulsePropagation : IChallenge
             foreach (var connection in _connections[senderModule])
             {
                 _pulseCounts[pulse]++;
-                Console.WriteLine($"{senderModule.Label} -{pulse}-> {connection}");
-
                 if (!_modules.ContainsKey(connection))
                 {
                     continue;
@@ -135,7 +188,10 @@ public class Day20PulsePropagation : IChallenge
         }
 
         public string Label { get; }
+        public bool InCriticalPath { get; private set; }
         public event EventHandler<OnPulseEventArgs>? OnPulse;
+
+        public void SetInCriticalPath() => InCriticalPath = true;
 
         public abstract void ReceivePulse(Module module, Pulse pulse);
 
