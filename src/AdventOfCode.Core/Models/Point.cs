@@ -1,6 +1,6 @@
 ﻿namespace AdventOfCode.Core.Models;
 
-public record Point(long X, long Y)
+public record Point(int X, int Y)
 {
     public Point Up => this with { Y = Y - 1 };
     public Point Down => this with { Y = Y + 1 };
